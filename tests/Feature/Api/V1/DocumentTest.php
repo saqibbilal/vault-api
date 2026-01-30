@@ -41,3 +41,58 @@ test('authenticated users can list their documents', function () {
     $response->assertStatus(200)
         ->assertJsonCount(3, 'data');
 });
+
+test('a user cannot view another users document', function () {
+    // 1. Create two users
+    $owner = User::factory()->create();
+    $intruder = User::factory()->create();
+
+    // 2. Create a document belonging to the owner
+    $document = Document::factory()->create(['user_id' => $owner->id]);
+
+    // 3. Log in as the intruder
+    Sanctum::actingAs($intruder);
+
+    // 4. Try to access the owner's document
+    $response = $this->getJson("/api/v1/documents/{$document->id}");
+
+    // 5. Expect a 403 Forbidden
+    $response->assertStatus(403);
+});
+
+test('a user can view their own document', function () {
+    $user = User::factory()->create();
+    $document = Document::factory()->create(['user_id' => $user->id]);
+
+    Sanctum::actingAs($user);
+
+    $response = $this->getJson("/api/v1/documents/{$document->id}");
+
+    $response->assertStatus(200)
+        ->assertJsonPath('data.id', $document->id);
+});
+
+test('super admins can view any document', function () {
+    // 1. Seed the roles first so 'super-admin' exists in the test DB
+    $this->seed(\Database\Seeders\RoleAndPermissionSeeder::class);
+
+    // 2. Create a regular user and their document
+    $owner = User::factory()->create();
+    $document = Document::factory()->create(['user_id' => $owner->id]);
+
+    // 3. Create a Super Admin
+    $admin = User::factory()->create();
+    $admin->assignRole('super-admin'); // Explicitly set the guard
+
+    // 4. Log in as Admin
+    Sanctum::actingAs($admin);
+
+    // 5. Access the owner's document
+    $response = $this->getJson("/api/v1/documents/{$document->id}");
+
+    $response->assertStatus(200)
+        ->assertJsonPath('data.id', $document->id);
+});
+
+
+

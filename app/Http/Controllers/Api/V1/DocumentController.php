@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\DocumentResource;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use App\Models\Document;
 use App\Http\Requests\Api\V1\StoreDocumentRequest;
@@ -28,7 +29,9 @@ class DocumentController extends Controller
         return new DocumentResource($document);
     }
 
-    // Display a specific document
+    /**
+     * @throws AuthorizationException
+     */
     public function show(Document $document): DocumentResource
     {
         // This looks for the 'view' method in DocumentPolicy
@@ -37,7 +40,10 @@ class DocumentController extends Controller
         return new DocumentResource($document);
     }
 
-// Update a document
+
+    /**
+     * @throws AuthorizationException
+     */
     public function update(StoreDocumentRequest $request, Document $document): DocumentResource
     {
         $this->authorize('update', $document);
