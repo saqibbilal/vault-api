@@ -8,14 +8,15 @@ use Illuminate\Http\Request;
 use App\Models\Document;
 use App\Http\Requests\Api\V1\StoreDocumentRequest;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class DocumentController extends Controller
 {
+    use AuthorizesRequests;
     public function index(Request $request): AnonymousResourceCollection
     {
-        // For now, we show all. Later, the Policy will filter this.
-        // Note the use of with('user') to avoid the N+1 problem!
-        $documents = Document::with('user')->latest()->get();
+        // we don't even need a Policy—we use Eloquent Scopes or simple relationship filtering
+        $documents = $request->user()->documents()->with('user')->latest()->get();
 
         return DocumentResource::collection($documents);
     }
@@ -23,6 +24,25 @@ class DocumentController extends Controller
     public function store(StoreDocumentRequest $request): DocumentResource
     {
         $document = $request->user()->documents()->create($request->validated());
+
+        return new DocumentResource($document);
+    }
+
+    // Display a specific document
+    public function show(Document $document): DocumentResource
+    {
+        // This looks for the 'view' method in DocumentPolicy
+        $this->authorize('view', $document);
+
+        return new DocumentResource($document);
+    }
+
+// Update a document
+    public function update(StoreDocumentRequest $request, Document $document): DocumentResource
+    {
+        $this->authorize('update', $document);
+
+        $document->update($request->validated());
 
         return new DocumentResource($document);
     }
