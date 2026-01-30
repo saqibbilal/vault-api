@@ -41,4 +41,11 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    public function contributor(): static
+    {
+        return $this->afterCreating(function (\App\Models\User $user) {
+            $user->assignRole('contributor');
+        });
+    }
 }
