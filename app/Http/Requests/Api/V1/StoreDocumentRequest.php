@@ -22,8 +22,16 @@ class StoreDocumentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'title'   => ['required', 'string', 'max:255'],
+            'content' => ['nullable', 'string'],
+            'type'    => ['required', 'string', 'in:note,file'],
+            // 'file' is required only if 'type' is 'file'
+            'file'    => [
+                'required_if:type,file',
+                'file',
+                'mimes:pdf,jpg,jpeg,png',
+                'max:5120' // 5MB limit
+            ],
         ];
     }
 }

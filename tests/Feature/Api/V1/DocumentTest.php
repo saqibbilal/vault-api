@@ -4,6 +4,8 @@ use App\Models\User;
 use App\Models\Document;
 use Laravel\Sanctum\Sanctum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Testing\File;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -19,6 +21,7 @@ test('authenticated users can create a document', function () {
     $response = $this->postJson('/api/v1/documents', [
         'title' => 'My Secret Note',
         'content' => 'This is the content of the note.',
+        'type' => 'note',
     ]);
 
     $response->assertStatus(201)
@@ -94,5 +97,34 @@ test('super admins can view any document', function () {
         ->assertJsonPath('data.id', $document->id);
 });
 
+test('authenticated users can upload a file document', function () {
+    // 1. Fake the disk
+    Storage::fake('public');
 
+    $user = User::factory()->create();
+    Sanctum::actingAs($user);
+
+    // 2. Create a fake PDF file
+    $file = File::create('contract.pdf', 100); // 100kb
+
+    $response = $this->postJson('/api/v1/documents', [
+        'title' => 'Project Contract',
+        'type' => 'file',
+        'file' => $file,
+    ]);
+
+    // 3. Assertions
+    $response->assertStatus(201);
+
+    // Check that the file was actually stored on our fake disk
+    $path = $response->json('data.file_path');
+    Storage::disk('public')->assertExists($path);
+
+    $this->assertDatabaseHas('documents', [
+        'title' => 'Project Contract',
+        'type' => 'file',
+        'file_path' => $path,
+        'mime_type' => 'application/pdf',
+    ]);
+});
 

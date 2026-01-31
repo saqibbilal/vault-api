@@ -10,10 +10,16 @@ use App\Models\Document;
 use App\Http\Requests\Api\V1\StoreDocumentRequest;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Contracts\FileStorageInterface;
 
 class DocumentController extends Controller
 {
     use AuthorizesRequests;
+
+    public function __construct(
+        protected FileStorageInterface $fileService
+    ) {}
+
     public function index(Request $request): AnonymousResourceCollection
     {
         // we don't even need a Policy—we use Eloquent Scopes or simple relationship filtering
@@ -24,7 +30,15 @@ class DocumentController extends Controller
 
     public function store(StoreDocumentRequest $request): DocumentResource
     {
-        $document = $request->user()->documents()->create($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('file')) {
+            $data['file_path'] = $this->fileService->store($request->file('file'));
+            $data['mime_type'] = $request->file('file')->getClientMimeType();
+            $data['size']      = $request->file('file')->getSize();
+        }
+
+        $document = $request->user()->documents()->create($data);
 
         return new DocumentResource($document);
     }

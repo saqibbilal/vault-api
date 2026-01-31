@@ -19,8 +19,10 @@ class DocumentResource extends JsonResource
             'title' => $this->title,
             'content' => $this->content,
             'type' => $this->type,
+            'file_path' => $this->file_path, // <--- Ensure this is here!
+            'mime_type' => $this->mime_type,
+            'size' => $this->size,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
-            'owner' => $this->user->name, // This demonstrates the relationship
         ];
     }
 }
