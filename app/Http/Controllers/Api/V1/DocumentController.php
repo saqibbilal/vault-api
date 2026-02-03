@@ -11,6 +11,7 @@ use App\Http\Requests\Api\V1\StoreDocumentRequest;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Contracts\FileStorageInterface;
+use Illuminate\Support\Facades\Storage;
 
 class DocumentController extends Controller
 {
@@ -65,6 +66,22 @@ class DocumentController extends Controller
         $document->update($request->validated());
 
         return new DocumentResource($document);
+    }
+
+    public function destroy(Document $document) : \Illuminate\Http\Response
+    {
+        // 1. Authorization (Spatie or Policy)
+        // $this->authorize('delete', $document);
+
+        // 2. Delete the physical file if it exists
+        if ($document->type === 'file' && $document->file_path) {
+            Storage::disk('public')->delete($document->file_path);
+        }
+
+        // 3. Delete the database record
+        $document->delete();
+
+        return response()->noContent();
     }
 
 }
