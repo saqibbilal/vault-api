@@ -19,15 +19,17 @@ class AuthController extends Controller
         $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
-            'password' => Hash::make($request->password), // Ensure it's hashed
+            'password' => Hash::make($request->password),
         ]);
 
-        // Default new users to 'contributor'
         $user->assignRole('contributor');
+
+        // Generate Token immediately on registration
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'user' => new UserResource($user),
-            'token' => $user->createToken('auth_token')->plainTextToken,
+            'token' => $token,
         ], 201);
     }
 
@@ -41,18 +43,20 @@ class AuthController extends Controller
             ]);
         }
 
+        // Generate a new token for this specific device/session
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
             'user' => new UserResource($user),
-            'token' => $user->createToken('auth_token')->plainTextToken,
+            'token' => $token,
         ]);
     }
 
     public function logout(Request $request): JsonResponse
     {
-        // Revoke the token that was used to authenticate the current request
+        // This is why tokens are great: you can target exactly which "key" to destroy
         $request->user()->currentAccessToken()->delete();
 
-        // Use the response() helper to explicitly return a JsonResponse object
         return response()->json([
             'message' => 'Logged out successfully'
         ]);

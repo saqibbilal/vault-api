@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Document extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'user_id',
         'title',
@@ -16,6 +17,10 @@ class Document extends Model
         'file_path',
         'mime_type',
         'size',
+        'type',
+    ];
+    protected $casts = [
+        'embedding' => 'array', // This handles the array-to-string conversion for Postgres
     ];
 
     public function user(): BelongsTo
