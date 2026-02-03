@@ -14,14 +14,15 @@ class DocumentSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get the test user we likely created in DatabaseSeeder or create a new one
-        $user = User::first() ?? User::factory()->contributor()->create([
-            'name' => 'Test Contributor',
-            'email' => 'contributor@vault.test',
-        ]);
+        $user = User::first() ?? User::factory()->create();
 
-        Document::factory()
-            ->count(10)
-            ->create(['user_id' => $user->id]);
+        // This "silences" the Observer for this block only
+        Document::withoutEvents(function () use ($user) {
+            Document::factory()->count(10)->create([
+                'user_id' => $user->id,
+                // We manually provide a fake vector so the DB doesn't complain
+                'embedding' => array_map(fn() => rand(-100, 100) / 100, range(1, 768))
+            ]);
+        });
     }
 }

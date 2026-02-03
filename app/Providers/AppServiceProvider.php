@@ -5,6 +5,9 @@ namespace App\Providers;
 use App\Contracts\FileStorageInterface;
 use App\Services\LocalFileService;
 use Illuminate\Support\ServiceProvider;
+use App\Models\Document;
+use App\Observers\DocumentObserver;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register the observer
+        Document::observe(DocumentObserver::class);
     }
 }

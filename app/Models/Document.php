@@ -19,6 +19,9 @@ class Document extends Model
         'size',
         'type',
     ];
+    protected $casts = [
+        'embedding' => 'array', // This handles the array-to-string conversion for Postgres
+    ];
 
     public function user(): BelongsTo
     {
