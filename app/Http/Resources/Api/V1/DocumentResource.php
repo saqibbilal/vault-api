@@ -23,6 +23,7 @@ class DocumentResource extends JsonResource
             'mime_type' => $this->mime_type,
             'size' => $this->size,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            // We EXCLUDE 'embedding' here.
         ];
     }
 }

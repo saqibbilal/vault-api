@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SearchRequest;
 use App\Http\Resources\Api\V1\DocumentResource;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -12,6 +13,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Contracts\FileStorageInterface;
 use Illuminate\Support\Facades\Storage;
+use Gemini\Laravel\Facades\Gemini;
 
 class DocumentController extends Controller
 {
@@ -82,6 +84,37 @@ class DocumentController extends Controller
         $document->delete();
 
         return response()->noContent();
+    }
+
+    public function search(SearchRequest $request)
+    {
+        $searchTerm = $request->get('query');
+
+        try {
+            // 1. Turn the user's search string into a vector "meaning"
+            $response = Gemini::embeddingModel('text-embedding-004')
+                ->embedContent($searchTerm);
+
+            $queryVector = json_encode($response->embedding->values);
+
+            // 2. Query the DB using Cosine Distance (<=>)
+            // We cast the string to ::vector so Postgres understands the math
+            $documents = Document::query()
+                ->where('user_id', $request->user()->id)
+                ->where('type', 'note')
+                ->whereNotNull('embedding')
+                ->orderByRaw("embedding <=> ?::vector", [$queryVector])
+                ->limit(10)
+                ->get();
+
+            return DocumentResource::collection($documents);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Search failed',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
 }
