@@ -99,11 +99,15 @@ class DocumentController extends Controller
 
             // 2. Query the DB using Cosine Distance (<=>)
             // We cast the string to ::vector so Postgres understands the math
+
             $documents = Document::query()
                 ->where('user_id', $request->user()->id)
-                ->whereIn('type', ['note', 'file'])
                 ->whereNotNull('embedding')
-                ->orderByRaw("embedding <=> ?::vector", [$queryVector])
+                // Select the distance so we can filter by it
+                ->selectRaw("*, (embedding <=> ?::vector) as distance", [$queryVector])
+                // Only show things that are reasonably "close" (0.5 is a common mid-point)
+                ->whereRaw("(embedding <=> ?::vector) < 0.6", [$queryVector])
+                ->orderBy('distance')
                 ->limit(10)
                 ->get();
 

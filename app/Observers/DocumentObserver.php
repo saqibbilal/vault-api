@@ -45,17 +45,24 @@ class DocumentObserver
     private function extractTextFromFile(Document $document): string
     {
         try {
-            // Get the absolute path from the storage disk
             $path = Storage::disk('public')->path($document->file_path);
             $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
+            // 1. Skip Image types (for now)
+            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                Log::info("Skipping embedding for image file: {$document->file_path}");
+                return '';
+            }
+
+            // 2. Handle PDF
             if ($extension === 'pdf') {
-                $parser = new PdfParser();
+                $parser = new \Smalot\PdfParser\Parser();
                 return $parser->parseFile($path)->getText();
             }
 
+            // 3. Handle Word
             if (in_array($extension, ['docx', 'doc'])) {
-                $phpWord = WordParser::load($path);
+                $phpWord = \PhpOffice\PhpWord\IOFactory::load($path);
                 $fullText = '';
                 foreach ($phpWord->getSections() as $section) {
                     foreach ($section->getElements() as $element) {
