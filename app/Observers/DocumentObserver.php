@@ -5,31 +5,71 @@ namespace App\Observers;
 use App\Models\Document;
 use Gemini\Laravel\Facades\Gemini;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+// Import the parsers
+use Smalot\PdfParser\Parser as PdfParser;
+use PhpOffice\PhpWord\IOFactory as WordParser;
 
 class DocumentObserver
 {
-    /**
-     * Handle the Document "saving" event.
-     * This triggers on both 'create' and 'update'.
-     */
     public function saving(Document $document): void
     {
-        // 1. Only generate embeddings for 'note' types
-        // 2. Only run if the content is not empty
-        // 3. Only run if the content has actually changed (to save API credits)
-        if ($document->type === 'note' && !empty($document->content) && $document->isDirty('content')) {
+        $textToEmbed = '';
+
+        // Case A: It's a note and the content changed
+        if ($document->type === 'note' && $document->isDirty('content')) {
+            $textToEmbed = $document->content;
+        }
+
+        // Case B: It's a file and the file_path changed (new upload)
+        elseif ($document->type !== 'note' && $document->isDirty('file_path')) {
+            $textToEmbed = $this->extractTextFromFile($document);
+        }
+
+        // Trigger Gemini if we have text and it's not empty
+        if (!empty($textToEmbed)) {
             try {
                 $result = Gemini::embeddingModel('text-embedding-004')
-                    ->embedContent($document->content);
+                    ->embedContent($textToEmbed);
 
-                // We store the array of 768 floats as a JSON-compatible string
-                // Postgres pgvector accepts the [0.1, 0.2, ...] format
                 $document->embedding = $result->embedding->values;
-
             } catch (\Exception $e) {
-                // We log the error so the save doesn't crash the whole app if Gemini is down
                 Log::error("Gemini Embedding Failed: " . $e->getMessage());
             }
         }
+    }
+
+    /**
+     * Helper to extract text from PDF or DOCX
+     */
+    private function extractTextFromFile(Document $document): string
+    {
+        try {
+            // Get the absolute path from the storage disk
+            $path = Storage::disk('public')->path($document->file_path);
+            $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+            if ($extension === 'pdf') {
+                $parser = new PdfParser();
+                return $parser->parseFile($path)->getText();
+            }
+
+            if (in_array($extension, ['docx', 'doc'])) {
+                $phpWord = WordParser::load($path);
+                $fullText = '';
+                foreach ($phpWord->getSections() as $section) {
+                    foreach ($section->getElements() as $element) {
+                        if (method_exists($element, 'getText')) {
+                            $fullText .= $element->getText() . " ";
+                        }
+                    }
+                }
+                return $fullText;
+            }
+        } catch (\Exception $e) {
+            Log::error("Text Extraction Failed for {$document->file_path}: " . $e->getMessage());
+        }
+
+        return '';
     }
 }

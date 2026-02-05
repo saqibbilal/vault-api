@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\SearchRequest;
+use App\Http\Requests\Api\V1\SearchRequest;
 use App\Http\Resources\Api\V1\DocumentResource;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -101,7 +101,7 @@ class DocumentController extends Controller
             // We cast the string to ::vector so Postgres understands the math
             $documents = Document::query()
                 ->where('user_id', $request->user()->id)
-                ->where('type', 'note')
+                ->whereIn('type', ['note', 'file'])
                 ->whereNotNull('embedding')
                 ->orderByRaw("embedding <=> ?::vector", [$queryVector])
                 ->limit(10)
