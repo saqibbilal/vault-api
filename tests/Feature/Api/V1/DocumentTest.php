@@ -6,6 +6,8 @@ use Laravel\Sanctum\Sanctum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Testing\File;
 use Illuminate\Support\Facades\Storage;
+use Gemini\Laravel\Facades\Gemini;
+use Gemini\Responses\GenerativeModel\GenerateContentResponse;
 
 uses(RefreshDatabase::class);
 
@@ -128,3 +130,31 @@ test('authenticated users can upload a file document', function () {
     ]);
 });
 
+it('triggers gemini ocr when an image is uploaded', function () {
+    // 1. Fake the storage and Gemini
+    Storage::fake('public');
+    Gemini::fake([
+        GenerateContentResponse::fake([
+            'candidates' => [
+                ['content' => ['parts' => [['text' => 'Sample OCR text from a Bill of Lading']]]]
+            ]
+        ]),
+    ]);
+
+    // 2. Create a dummy image file
+    $filePath = 'documents/test-bolt.jpg';
+    Storage::disk('public')->put($filePath, 'fake-image-content');
+
+    // 3. Create the document (This triggers the Observer)
+    $document = Document::create([
+        'title'     => 'Test BOL',
+        'type'      => 'file',
+        'file_path' => $filePath,
+        'user_id'   => 1, // Ensure a user exists or use a factory
+    ]);
+
+    // 4. Assert Gemini was called
+    Gemini::assertSent(function ($model, $params) {
+        return $model === 'gemini-1.5-flash';
+    });
+});

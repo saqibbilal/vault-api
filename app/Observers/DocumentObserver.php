@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Document;
 use Gemini\Laravel\Facades\Gemini;
+use Gemini\Enums\MimeType;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 // Import the parsers
@@ -16,20 +17,24 @@ class DocumentObserver
     {
         $textToEmbed = '';
 
-        // Case A: It's a note and the content changed
+        // Case A: It's a note
         if ($document->type === 'note' && $document->isDirty('content')) {
             $textToEmbed = $document->content;
         }
 
-        // Case B: It's a file and the file_path changed (new upload)
+        // Case B: It's a file upload
         elseif ($document->type !== 'note' && $document->isDirty('file_path')) {
-            $textToEmbed = $this->extractTextFromFile($document);
+            $extractedText = $this->extractTextFromFile($document);
+            $document->content = $extractedText;
+
+            // Combine Title + Content for the embedding logic
+            $textToEmbed = "Title: " . $document->title . "\nContent: " . $extractedText;
         }
 
-        // Trigger Gemini if we have text and it's not empty
+        // Handle Embedding (Existing logic)
         if (!empty($textToEmbed)) {
             try {
-                $result = Gemini::embeddingModel('text-embedding-004')
+                $result = Gemini::embeddingModel('models/gemini-embedding-001')
                     ->embedContent($textToEmbed);
 
                 $document->embedding = $result->embedding->values;
@@ -40,18 +45,18 @@ class DocumentObserver
     }
 
     /**
-     * Helper to extract text from PDF or DOCX
+     * Helper to extract text from PDF, DOCX, or Images (OCR)
      */
     private function extractTextFromFile(Document $document): string
     {
         try {
             $path = Storage::disk('public')->path($document->file_path);
             $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+            $mimeType = mime_content_type($path);
 
-            // 1. Skip Image types (for now)
-            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
-                Log::info("Skipping embedding for image file: {$document->file_path}");
-                return '';
+            // 1. Handle Images (OCR via Gemini Vision)
+            if (str_starts_with($mimeType, 'image/')) {
+                return $this->performOcrWithGemini($path, $mimeType);
             }
 
             // 2. Handle PDF
@@ -79,4 +84,40 @@ class DocumentObserver
 
         return '';
     }
+
+    /**
+     * Perform OCR using Gemini Multimodal
+     */
+    private function performOcrWithGemini(string $path, string $mimeType): string
+    {
+        try {
+            $geminiMimeType = match ($mimeType) {
+                'image/png', 'image/x-png' => MimeType::IMAGE_PNG,
+                'image/jpeg', 'image/jpg'  => MimeType::IMAGE_JPEG,
+                'image/webp'               => MimeType::IMAGE_WEBP,
+                'image/heic', 'image/heif' => MimeType::IMAGE_HEIC,
+                default                    => MimeType::from($mimeType),
+            };
+
+            // USE THE 2.5 FLASH MODEL FROM YOUR TINKER LIST
+            $result = Gemini::generativeModel(model: 'gemini-2.5-flash')
+                ->generateContent([
+                    'Read and extract all text from this image accurately. Preserve the document structure and headers.',
+                    new \Gemini\Data\Blob(
+                        mimeType: $geminiMimeType,
+                        data: base64_encode(file_get_contents($path))
+                    )
+                ]);
+
+            $text = $result->text();
+            Log::info("OCR Success (Gemini 2.5): " . substr($text, 0, 50) . "...");
+
+            return $text;
+        } catch (\Exception $e) {
+            // If 'gemini-2.5-flash' fails, try 'models/gemini-2.5-flash'
+            Log::error("Gemini OCR Failed: " . $e->getMessage());
+            return '';
+        }
+    }
+
 }

@@ -92,23 +92,23 @@ class DocumentController extends Controller
 
         try {
             // 1. Turn the user's search string into a vector "meaning"
-            $response = Gemini::embeddingModel('text-embedding-004')
+
+            $response = Gemini::embeddingModel('models/gemini-embedding-001')
                 ->embedContent($searchTerm);
 
-            $queryVector = json_encode($response->embedding->values);
+            // 1. Convert the embedding array to a Postgres-compatible string
+            $embeddingString = '[' . implode(',', $response->embedding->values) . ']';
 
             // 2. Query the DB using Cosine Distance (<=>)
-            // We cast the string to ::vector so Postgres understands the math
 
             $documents = Document::query()
-                ->where('user_id', $request->user()->id)
-                ->whereNotNull('embedding')
-                // Select the distance so we can filter by it
-                ->selectRaw("*, (embedding <=> ?::vector) as distance", [$queryVector])
-                // Only show things that are reasonably "close" (0.5 is a common mid-point)
-                ->whereRaw("(embedding <=> ?::vector) < 0.6", [$queryVector])
+                ->select('*')
+                // We calculate the distance once
+                ->selectRaw('embedding <=> ? AS distance', [$embeddingString])
+                // ONLY show results that are semantically close (lower distance = better match)
+                // 0.6 is a good starting point. Adjust to 0.4 for stricter, 0.7 for looser.
+                ->whereRaw('embedding <=> ? < 0.4', [$embeddingString])
                 ->orderBy('distance')
-                ->limit(10)
                 ->get();
 
             return DocumentResource::collection($documents);
