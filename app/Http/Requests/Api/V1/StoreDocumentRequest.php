@@ -29,8 +29,8 @@ class StoreDocumentRequest extends FormRequest
             'file'    => [
                 'required_if:type,file',
                 'file',
-                'mimes:pdf,jpg,jpeg,png',
-                'max:5120' // 5MB limit
+                'mimes:pdf,jpg,jpeg,png,docx,doc',
+                'max:10240' // 10MB limit
             ],
         ];
     }

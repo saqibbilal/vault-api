@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\SearchRequest;
+use App\Http\Requests\Api\V1\SearchRequest;
 use App\Http\Resources\Api\V1\DocumentResource;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -92,19 +92,23 @@ class DocumentController extends Controller
 
         try {
             // 1. Turn the user's search string into a vector "meaning"
-            $response = Gemini::embeddingModel('text-embedding-004')
+
+            $response = Gemini::embeddingModel('models/gemini-embedding-001')
                 ->embedContent($searchTerm);
 
-            $queryVector = json_encode($response->embedding->values);
+            // 1. Convert the embedding array to a Postgres-compatible string
+            $embeddingString = '[' . implode(',', $response->embedding->values) . ']';
 
             // 2. Query the DB using Cosine Distance (<=>)
-            // We cast the string to ::vector so Postgres understands the math
+
             $documents = Document::query()
-                ->where('user_id', $request->user()->id)
-                ->where('type', 'note')
-                ->whereNotNull('embedding')
-                ->orderByRaw("embedding <=> ?::vector", [$queryVector])
-                ->limit(10)
+                ->select('*')
+                // We calculate the distance once
+                ->selectRaw('embedding <=> ? AS distance', [$embeddingString])
+                // ONLY show results that are semantically close (lower distance = better match)
+                // 0.6 is a good starting point. Adjust to 0.4 for stricter, 0.7 for looser.
+                ->whereRaw('embedding <=> ? < 0.4', [$embeddingString])
+                ->orderBy('distance')
                 ->get();
 
             return DocumentResource::collection($documents);
