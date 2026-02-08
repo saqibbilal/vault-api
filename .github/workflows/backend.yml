@@ -18,7 +18,7 @@ jobs:
         with:
           php-version: '8.4'
           extensions: mbstring, bcmath, gd, zip, pdo_pgsql, pgsql
-          tools: composer:v2
+          tools: composer:v2, php-parallel-lint
 
       - name: Install Composer Dependencies
         run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
@@ -33,4 +33,4 @@ jobs:
         run: chmod -R 777 storage bootstrap/cache
 
       - name: Check Syntax (Lint)
-        run: ./vendor/bin/php-parallel-lint . --exclude vendor
+        run: php-parallel-lint . --exclude vendor

@@ -1,7 +1,6 @@
-# The Vault API 🔒
+# The Vault API | Keepr 🔒
 
 A security-first RESTful API built with Laravel 11, designed for secure document management and encrypted note storage. This project serves as the backbone for the "Vault" ecosystem, implementing high-level architectural patterns and strict Role-Based Access Control (RBAC).
-
 
 # Keepr API | Neural Document Engine
 
@@ -11,7 +10,7 @@ The **Keepr API** is the backbone of the Keepr ecosystem. Built with Laravel, it
 * **OCR Engine:** Integrated with Gemini 1.5 Flash for high-accuracy document transcription.
 * **Vector Search:** Utilizes **pgvector** to perform semantic similarity searches across the document vault.
 * **Queue Management:** Background processing for AI tasks to ensure low-latency API responses.
-* 
+
 
 ## 🚀 Key Features
 
@@ -26,8 +25,8 @@ The **Keepr API** is the backbone of the Keepr ecosystem. Built with Laravel, it
 
 
 ## 🛠️ Tech Stack
-* **Language:** [PHP 8.3](https://www.php.net/)
-* **Framework:** [Laravel 11](https://laravel.com/)
+* **Language:** [PHP 8.4](https://www.php.net/)
+* **Framework:** [Laravel 12](https://laravel.com/)
 * **Database:** [PostgreSQL](https://www.postgresql.org/) with `pgvector`
 * **AI Integration:** [Google Gemini API](https://ai.google.dev/)
 * **Authentication:** [Laravel Sanctum](https://laravel.com/docs/sanctum)
@@ -53,7 +52,6 @@ The **Keepr API** is the backbone of the Keepr ecosystem. Built with Laravel, it
 | `DELETE` | `/api/v1/documents/{id}` | Remove from vault | *None* |
 
 
-
 ## 🔧 Installation & Setup
 1. **Clone the repo:**
    ```bash
@@ -68,7 +66,6 @@ The **Keepr API** is the backbone of the Keepr ecosystem. Built with Laravel, it
 ```php artisan key:generate```
 
 4. **Run Migrations:**
-
 ```php artisan migrate```
 
 5. **Start Server:**
