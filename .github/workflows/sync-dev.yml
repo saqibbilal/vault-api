@@ -1,0 +1,36 @@
+name: Sync Dev to Main
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  create-and-merge-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required to check for conflicts accurately
+
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: dev
+          base: main
+          title: "🚀 Production Sync: dev to main"
+          body: "Automated PR to sync development changes to production."
+          labels: automerge
+
+      - name: Automate Merge
+        if: steps.cpr.outputs.pull-request-operation == 'created' || steps.cpr.outputs.pull-request-operation == 'updated'
+        uses: pascalgn/automerge-action@v0.16.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MERGE_LABELS: "automerge"
+          MERGE_METHOD: "merge"
+          MERGE_RETRIES: "6"
+          MERGE_RETRY_SLEEP: "10000"
