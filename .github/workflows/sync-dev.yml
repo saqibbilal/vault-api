@@ -10,15 +10,13 @@ permissions:
   pull-requests: write
 
 jobs:
-  sync:
+  create-pr:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Create and auto-merge PR
+      - name: Create PR if missing
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -34,8 +32,7 @@ jobs:
               --base main \
               --head dev \
               --title "🚀 Sync dev → main" \
-              --body "Automated merge from dev"
-            PR=$(gh pr list --base main --head dev --json number -q '.[0].number')
+              --body "Automated sync PR from dev"
+          else
+            echo "PR already exists"
           fi
-
-          gh pr merge "$PR" --auto --merge
