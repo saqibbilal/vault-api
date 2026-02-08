@@ -36,4 +36,11 @@ jobs:
         run: composer global require php-parallel-lint/php-parallel-lint
 
       - name: Check Syntax (Lint)
-        run: $(composer global config bin-dir --absolute)/php-parallel-lint . --exclude vendor
+        run: |
+          LINTER_PATH=$(find vendor -name php-parallel-lint -type f -executable | head -n 1)
+          if [ -z "$LINTER_PATH" ]; then
+            echo "Linter not found in vendor, installing manually..."
+            composer global require php-parallel-lint/php-parallel-lint
+            LINTER_PATH=$(composer global config bin-dir --absolute)/php-parallel-lint
+          fi
+          $LINTER_PATH . --exclude vendor
