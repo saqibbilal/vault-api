@@ -1,4 +1,4 @@
-# The Vault API 🔒
+# The Vault API | Keepr 🔒
 
 A security-first RESTful API built with Laravel 11, designed for secure document management and encrypted note storage. This project serves as the backbone for the "Vault" ecosystem, implementing high-level architectural patterns and strict Role-Based Access Control (RBAC).
 
