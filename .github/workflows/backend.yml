@@ -1,8 +1,8 @@
-name: Keepr Backend CI
+name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   pull_request:
     branches: [ main ]
 
@@ -18,10 +18,10 @@ jobs:
         with:
           php-version: '8.4'
           extensions: mbstring, bcmath, gd, zip, pdo_pgsql, pgsql
-          tools: composer:v2, php-parallel-lint
+          tools: composer:v2
 
       - name: Install Composer Dependencies
-        run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+        run: composer install --no-interaction --prefer-dist
 
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
@@ -33,4 +33,4 @@ jobs:
         run: chmod -R 777 storage bootstrap/cache
 
       - name: Check Syntax (Lint)
-        run: php-parallel-lint . --exclude vendor
+        run: ./vendor/bin/parallel-lint . --exclude vendor

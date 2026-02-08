@@ -72,10 +72,8 @@ The **Keepr API** is the backbone of the Keepr ecosystem. Built with Laravel, it
 ```php artisan serve```
 
 🔐 Security Features
-Encrypted Storage: All user documents are stored with unique, non-predictable pathing.
-
-CORS Protection: Configured for strict origin validation.
-
-Rate Limiting: Protects AI endpoints from exhaustion.
+- Encrypted Storage: All user documents are stored with unique, non-predictable pathing.
+- CORS Protection: Configured for strict origin validation.
+- Rate Limiting: Protects AI endpoints from exhaustion.
 
 Developed by mbilal.ca
