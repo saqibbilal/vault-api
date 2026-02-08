@@ -14,19 +14,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup GitHub CLI
-        uses: cli/cli-action@v2
-
-      - name: Create PR if not exists
+      - name: Create/Auto-merge PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Check if PR already exists
+          # find existing PR
           PR=$(gh pr list \
             --base main \
             --head dev \
@@ -34,15 +30,16 @@ jobs:
             --json number \
             -q '.[0].number')
 
+          # create if missing
           if [ -z "$PR" ]; then
             gh pr create \
               --base main \
               --head dev \
-              --title "🚀 Production Sync: dev → main" \
-              --body "Automated sync from dev to main." \
+              --title "🚀 Sync dev → main" \
+              --body "Automated merge from dev" \
               --label automerge
             PR=$(gh pr list --base main --head dev --json number -q '.[0].number')
           fi
 
-          # Enable auto-merge
-          gh pr merge $PR --auto --merge
+          # enable auto merge
+          gh pr merge "$PR" --auto --merge
