@@ -1,4 +1,4 @@
-name: Sync Dev to Main
+name: Sync Dev
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
 
       - name: Create PR if missing
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
         run: |
           PR=$(gh pr list \
             --base main \

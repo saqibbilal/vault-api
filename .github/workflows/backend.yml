@@ -1,4 +1,4 @@
-name: Keepr Backend CI
+name: CI
 
 on:
   push:
