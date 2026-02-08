@@ -18,11 +18,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Create/Auto-merge PR
+      - name: Create and auto-merge PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # find existing PR
           PR=$(gh pr list \
             --base main \
             --head dev \
@@ -30,16 +29,13 @@ jobs:
             --json number \
             -q '.[0].number')
 
-          # create if missing
           if [ -z "$PR" ]; then
             gh pr create \
               --base main \
               --head dev \
               --title "🚀 Sync dev → main" \
-              --body "Automated merge from dev" \
-              --label automerge
+              --body "Automated merge from dev"
             PR=$(gh pr list --base main --head dev --json number -q '.[0].number')
           fi
 
-          # enable auto merge
           gh pr merge "$PR" --auto --merge
