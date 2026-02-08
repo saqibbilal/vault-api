@@ -18,10 +18,10 @@ jobs:
         with:
           php-version: '8.4'
           extensions: mbstring, bcmath, gd, zip, pdo_pgsql, pgsql
-          tools: composer:v2, php-parallel-lint
+          tools: composer:v2
 
       - name: Install Composer Dependencies
-        run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+        run: composer install --no-interaction --prefer-dist
 
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
@@ -32,8 +32,5 @@ jobs:
       - name: Directory Permissions
         run: chmod -R 777 storage bootstrap/cache
 
-      - name: Install Linter
-        run: composer global require php-parallel-lint/php-parallel-lint
-
       - name: Check Syntax (Lint)
-        run: php-parallel-lint . --exclude vendor
+        run: ./vendor/bin/php-parallel-lint . --exclude vendor
