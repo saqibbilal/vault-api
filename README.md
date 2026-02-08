@@ -52,7 +52,6 @@ The **Keepr API** is the backbone of the Keepr ecosystem. Built with Laravel, it
 | `DELETE` | `/api/v1/documents/{id}` | Remove from vault | *None* |
 
 
-
 ## 🔧 Installation & Setup
 1. **Clone the repo:**
    ```bash
@@ -67,7 +66,6 @@ The **Keepr API** is the backbone of the Keepr ecosystem. Built with Laravel, it
 ```php artisan key:generate```
 
 4. **Run Migrations:**
-
 ```php artisan migrate```
 
 5. **Start Server:**

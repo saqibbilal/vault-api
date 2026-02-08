@@ -5,40 +5,44 @@ on:
     branches:
       - dev
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
-  create-and-merge-pr:
+  sync:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.SYNC_TOKEN }}
-          fetch-depth: 0 # Required to check for conflicts accurately
+          fetch-depth: 0
 
-      - name: Create Pull Request
-        id: cpr
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.SYNC_TOKEN }}
-          base: main
-          branch: main-automation-sync # This is a temp branch the action creates
-          push-to-fork: false
-          commit-message: "chore: sync dev to main"
-          title: "🚀 Production Sync: dev to main"
-          body: "Automated PR to sync development changes to production."
-          labels: automerge
-          # CRITICAL: This ensures the action actually looks at your 'dev' branch
-          delete-branch: true
+      - name: Setup GitHub CLI
+        uses: cli/cli-action@v2
 
-      - name: Automate Merge
-        if: steps.cpr.outputs.pull-request-operation == 'created' || steps.cpr.outputs.pull-request-operation == 'updated'
-        uses: pascalgn/automerge-action@v0.16.2
+      - name: Create PR if not exists
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MERGE_LABELS: "automerge"
-          MERGE_METHOD: "merge"
-          MERGE_FORK_PR: "false"
-          MERGE_REQUIRED_APPROVALS: "0" # Set to 1 if you want to manually approve first
-          # This ensures it waits for your CI to turn green
-          MERGE_RETRIES: "12"
-          MERGE_RETRY_SLEEP: "30000" # Waits 30s between checks (6 mins total)
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if PR already exists
+          PR=$(gh pr list \
+            --base main \
+            --head dev \
+            --state open \
+            --json number \
+            -q '.[0].number')
+
+          if [ -z "$PR" ]; then
+            gh pr create \
+              --base main \
+              --head dev \
+              --title "🚀 Production Sync: dev → main" \
+              --body "Automated sync from dev to main." \
+              --label automerge
+            PR=$(gh pr list --base main --head dev --json number -q '.[0].number')
+          fi
+
+          # Enable auto-merge
+          gh pr merge $PR --auto --merge
