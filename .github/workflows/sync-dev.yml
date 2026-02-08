@@ -18,7 +18,7 @@ jobs:
         id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.SYNC_TOKEN }}
           branch: dev
           base: main
           title: "🚀 Production Sync: dev to main"
@@ -32,5 +32,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MERGE_LABELS: "automerge"
           MERGE_METHOD: "merge"
-          MERGE_RETRIES: "6"
-          MERGE_RETRY_SLEEP: "10000"
+          MERGE_FORK_PR: "false"
+          MERGE_REQUIRED_APPROVALS: "0" # Set to 1 if you want to manually approve first
+          # This ensures it waits for your CI to turn green
+          MERGE_RETRIES: "12"
+          MERGE_RETRY_SLEEP: "30000" # Waits 30s between checks (6 mins total)
