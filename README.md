@@ -25,8 +25,8 @@ The **Keepr API** is the backbone of the Keepr ecosystem. Built with Laravel, it
 
 
 ## 🛠️ Tech Stack
-* **Language:** [PHP 8.3](https://www.php.net/)
-* **Framework:** [Laravel 11](https://laravel.com/)
+* **Language:** [PHP 8.4](https://www.php.net/)
+* **Framework:** [Laravel 12](https://laravel.com/)
 * **Database:** [PostgreSQL](https://www.postgresql.org/) with `pgvector`
 * **AI Integration:** [Google Gemini API](https://ai.google.dev/)
 * **Authentication:** [Laravel Sanctum](https://laravel.com/docs/sanctum)

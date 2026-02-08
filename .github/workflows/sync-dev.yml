@@ -20,12 +20,15 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.SYNC_TOKEN }}
-          branch: dev-to-main-sync # A temp branch for the PR
-          source-branch: dev       # This tells it where the code is coming from
-          base: main               # The destination
+          base: main
+          branch: main-automation-sync # This is a temp branch the action creates
+          push-to-fork: false
+          commit-message: "chore: sync dev to main"
           title: "🚀 Production Sync: dev to main"
           body: "Automated PR to sync development changes to production."
           labels: automerge
+          # CRITICAL: This ensures the action actually looks at your 'dev' branch
+          delete-branch: true
 
       - name: Automate Merge
         if: steps.cpr.outputs.pull-request-operation == 'created' || steps.cpr.outputs.pull-request-operation == 'updated'
