@@ -32,5 +32,8 @@ jobs:
       - name: Directory Permissions
         run: chmod -R 777 storage bootstrap/cache
 
+      - name: Install Linter
+        run: composer global require php-parallel-lint/php-parallel-lint
+
       - name: Check Syntax (Lint)
-        run: ./vendor/bin/php-parallel-lint . --exclude vendor
+        run: $(composer global config bin-dir --absolute)/php-parallel-lint . --exclude vendor
