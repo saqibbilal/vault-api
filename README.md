@@ -2,7 +2,6 @@
 
 A security-first RESTful API built with Laravel 11, designed for secure document management and encrypted note storage. This project serves as the backbone for the "Vault" ecosystem, implementing high-level architectural patterns and strict Role-Based Access Control (RBAC).
 
-
 # Keepr API | Neural Document Engine
 
 The **Keepr API** is the backbone of the Keepr ecosystem. Built with Laravel, it handles secure document storage, vector embedding synchronization, and AI-powered metadata extraction.
@@ -11,7 +10,7 @@ The **Keepr API** is the backbone of the Keepr ecosystem. Built with Laravel, it
 * **OCR Engine:** Integrated with Gemini 1.5 Flash for high-accuracy document transcription.
 * **Vector Search:** Utilizes **pgvector** to perform semantic similarity searches across the document vault.
 * **Queue Management:** Background processing for AI tasks to ensure low-latency API responses.
-* 
+
 
 ## 🚀 Key Features
 
