@@ -1,0 +1,40 @@
+# Git & IDEs
+.git
+.gitignore
+.idea
+.vscode
+.zed
+.nova
+.fleet
+
+# PHP / Laravel dependencies & logs
+vendor/
+node_modules/
+npm-debug.log
+yarn-error.log
+storage/logs/*.log
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*.php
+storage/app/public/*
+.phpunit.result.cache
+.phpunit.cache
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+auth.json
+storage/*.key
+
+# Docker specific
+docker/*
+!docker/nginx.conf
+Dockerfile
+Dockerfile.nginx
+docker-compose.yml
+deploy.sh
+
+# OS generated files
+.DS_Store
+Thumbs.db
