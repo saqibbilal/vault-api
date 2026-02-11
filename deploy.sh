@@ -33,7 +33,7 @@ deploy_image() {
 
     echo "📦 Building ${repo_name}..."
     # Using --platform linux/amd64 ensures compatibility with AWS Fargate
-    docker build --platform linux/amd64 -t ${repo_name} -f ${dockerfile} .
+    docker build --platform linux/amd64 --no-cache -t ${repo_name} -f ${dockerfile} .
 
     echo "🏷️  Tagging and Pushing ${repo_name}..."
     docker tag ${repo_name}:latest ${image_uri}:latest
@@ -58,3 +58,12 @@ echo "App Image: ${ECR_BASE}/${APP_REPO}:latest"
 echo "Web Image: ${ECR_BASE}/${WEB_REPO}:latest"
 echo "=========================================="
 echo "Next step: Update your ECS Task Definition with these URIs."
+
+CLUSTER="keepr-cluster"
+SERVICE="keepr-service"
+
+echo "🔄 Forcing new ECS deployment..."
+aws ecs update-service \
+  --cluster ${CLUSTER} \
+  --service ${SERVICE} \
+  --force-new-deployment
