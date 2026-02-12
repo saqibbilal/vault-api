@@ -21,7 +21,7 @@ return [
     'allowed_methods' => ['*'],
 
     // 2. Keep this restricted to your Next.js dev server
-    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000')],
+    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000'), "https://keepr-xi.vercel.app"],
 
     'allowed_origins_patterns' => [],
 
