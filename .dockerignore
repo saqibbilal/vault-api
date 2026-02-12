@@ -8,6 +8,7 @@
 .fleet
 
 # PHP / Laravel dependencies & logs
+bootstrap/cache/*
 vendor/
 node_modules/
 npm-debug.log
@@ -30,6 +31,7 @@ storage/*.key
 # Docker specific
 docker/*
 !docker/nginx.conf
+!docker/entrypoint.sh
 Dockerfile
 Dockerfile.nginx
 docker-compose.yml

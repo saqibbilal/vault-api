@@ -6,6 +6,11 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DocumentController;
 use Gemini\Laravel\Facades\Gemini;
 
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok'], 200);
+});
+
+
 Route::prefix('v1')->group(function () {
     // Auth Routes
     Route::post('/register', [AuthController::class, 'register']);
