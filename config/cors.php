@@ -16,7 +16,7 @@ return [
     */
 
 // 1. Path update: We only need to worry about our API and Auth routes
-    'paths' => ['api/*', 'login', 'register', 'logout'],
+    'paths' => ['*'],
 
     'allowed_methods' => ['*'],
 
