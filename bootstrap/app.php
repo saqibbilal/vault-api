@@ -12,13 +12,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // This is the missing piece for Laravel 11 + Vercel
+        // Prepend ensures CORS headers are attached before any redirects or 500 errors occur
+        $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);
+
         $middleware->validateCsrfTokens(except: [
             'api/*',
         ]);
-
-        // Ensure CORS is handled globally
-        $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
