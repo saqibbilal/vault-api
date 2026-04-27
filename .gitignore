@@ -19,6 +19,7 @@
 /storage/*.key
 /storage/pail
 /vendor
+keepr_deployment_sheet.docx
 Homestead.json
 Homestead.yaml
 Thumbs.db
